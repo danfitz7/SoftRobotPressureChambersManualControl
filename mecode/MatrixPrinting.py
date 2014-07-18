@@ -15,6 +15,8 @@ default_travel_height_abs = default_mold_top_abs+3
 default_print_speed = 1.5
 default_z_axis = "z"
 
+#stems
+
 # Pressure control Macros
 pressure_on = False
 def turn_pressure_off(com_port = default_com_port, start_stop_dwell_time = default_start_stop_dwell_time):

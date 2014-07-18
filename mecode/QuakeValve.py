@@ -3,7 +3,7 @@ import numpy as np
 from MatrixPrinting import *
 from PrintingGlobals import *
 
-def print_valve(print_height_abs, pressure=85,com_port=9, theta=0, stem_print_speed = default_print_speed, flow_connection_x = 3, control_connection_y = 5, x_mirror=False, y_mirror=False):
+def print_valve(print_height_abs, theta=0, stem_print_speed = default_print_speed, flow_connection_x = 3, control_connection_y = 5, x_mirror=False, y_mirror=False, flow_inlet = True, control_inlet = True, control_stem_corner = True):
     """Prints a valve with the stem starting in the current position and rotated by theta. Assume nozzle is already at the correct height"""
     """Overall connection geometry is as follows: 
         back flow connector = (0,-3)
@@ -24,10 +24,22 @@ def print_valve(print_height_abs, pressure=85,com_port=9, theta=0, stem_print_sp
             |  |    Control Inlet
             E--*     
             |
-            I
+            
         
         Bottom Flow Inlet
         
+        or, if control_stem_corner=False,
+        
+            I
+            |
+            E--*--H Control inlet
+            |
+            
+        
+        Tthe flow inlet (I) will be absent if flow_inlet=False
+        
+        The control inlet (I or H) will be absent if control_inlet=False   
+                    
         """
     
     global g
@@ -42,11 +54,11 @@ def print_valve(print_height_abs, pressure=85,com_port=9, theta=0, stem_print_sp
     inlet_stem_length = 2
     inlet_needle_length = 3
     inlet_total_length = inlet_stem_length+inlet_needle_length
-    def print_inlet():
+    def print_inlet(_theta=theta):
         PrintingGlobals.g.feed(stem_print_speed)
-        move_y(inlet_stem_length, theta)
+        move_y(inlet_stem_length, _theta)
         PrintingGlobals.g.feed(inlet_print_speed)
-        move_y(inlet_needle_length, theta)
+        move_y(inlet_needle_length, _theta)
     
     #general
     pad_z_separation = 0.2+0.19
@@ -99,9 +111,10 @@ def print_valve(print_height_abs, pressure=85,com_port=9, theta=0, stem_print_sp
     move_x(x_mirror*(control_pad_stem_length), theta) #go to the right before corner to inlet
     
     #print the control stem inlet so it lines up with the flow inlet
-    control_stem_alignement_distance = flow_connection_x     #TODO: why does flow_connection_x=3 work?
-    move_y(y_mirror*(control_stem_alignement_distance), theta)
-    print_inlet() #print the control inlet up
+    control_stem_alignement_distance = (flow_connection_x if control_stem_corner else 0)   #TODO: why does flow_connection_x=3 work?
+    if (control_stem_corner):
+        move_y(y_mirror*(control_stem_alignement_distance), theta)
+    print_inlet(_theta=theta) #print the control inlet up
     
     #travel to the back (-y) interconect point of flow lines
     travel_mode(whipe_angle=theta+np.pi/2)

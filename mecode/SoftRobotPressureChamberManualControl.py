@@ -22,9 +22,11 @@ from MatrixPrinting import *
 from QuakeValve import *
 from Actuators import *
 from PrintingGlobals import *
+from PressureChambers import *
 
 g=init_G(r"H:\User Files\Fitzgerald\SoftRobots\SoftRobotPressureChambersManualControl\gcode\SoftRobotPressureChambersManualControl.pgm")
-g.write(start_script_string)
+
+
 
 def print_robot():
     
@@ -100,13 +102,18 @@ def print_robot():
     valve_x_distance = 1.5 #distance from the center of the body to the valve is center
     valve_angle = np.pi
     valve_connection_dwell_time = 2 # when connecting to the valve flowstems, dwell for this long to make a good blob junction
-    
+     
+    # pressure chambers    
+    pressure_chamber_separation_distance = 7
+                            
     #print the left pressure chamber
+    g.abs_move(control_line_A_x, y=valve_y-valve_flow_connection-default_total_pressure_chamber_inlet_length-default_pressure_chamber_length-pressure_chamber_separation_distance)
+    print_pressure_chamber(print_height_abs=control_line_height_abs)
 
     #print left valve
     left_valve_x = mold_center_x-valve_x_distance
     g.abs_move(x=left_valve_x, y = valve_y)
-    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, theta=valve_angle)
+    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, theta=valve_angle, control_stem_corner=True)
         
     #print control line A (left side)
 #    travel_mode(whipe_distance=0) valve printing ends in travel mode
@@ -124,7 +131,7 @@ def print_robot():
     #print right valve
     right_valve_x = mold_center_x+valve_x_distance
     g.abs_move(x=right_valve_x,y=valve_y)
-    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, x_mirror=True, theta=valve_angle)
+    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, x_mirror=True, theta=valve_angle, control_stem_corner=False)
     
     #print control line B (right side)
     g.abs_move(x=right_valve_x, y=valve_y+valve_flow_connection) #move over the top flow connector of the right valve
@@ -195,11 +202,14 @@ def print_robot():
     #go back to home
     g.abs_move(x=0,y=0,**{default_z_axis:default_travel_height_abs})
 
+g.write(multiNozzle_start_code)
+g.write(start_script_string)
+g.write(multiNozzle_start_code_2)
+
 #main program
 print_robot()     
 
-#print (g.get_bounding_box())
-
-g.write(end_script_string)                            
+g.write(end_script_string)  
+g.write(multiNozzle_start_code)                          
 g.view()
 g.teardown()
