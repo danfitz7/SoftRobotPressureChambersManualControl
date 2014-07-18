@@ -34,7 +34,9 @@ def print_robot():
     MACHINE_ZERO = -58.36 #zero on the top of the left ecoflex layer
     MACHINE_ZERO_RIGHT = -58.273 #the top of the left ecoflex layer
     right_side_offset = MACHINE_ZERO_RIGHT-MACHINE_ZERO # added to the print height of the right actuators
-                    
+    MOLD_MACHINE_X = 394.742
+    MOLD_MACHINE_Y = 128.601
+                                   
     # mold parameters
     mold_z_zero_abs = 0     # absolute zero of the top of the mold
     mold_center_x = 53.5    # x coordinate of the center of the robot, relative to mold top left corner
@@ -81,42 +83,55 @@ def print_robot():
     
     # set the current X and Y as the origin of the current work coordinates
     g.absolute()
+    g.abs_move(x=MOLD_MACHINE_X, y=MOLD_MACHINE_Y)  
     g.write("POSOFFSET CLEAR A ; clear all position offsets and work coordinates.") 
     g.feed(default_travel_speed)
     move_z_abs(MACHINE_ZERO+default_travel_height_abs)
     g.write("\nG92 X0 Y0 "+default_z_axis+str(default_travel_height_abs)+" ; set the current position as the absolute work coordinate zero origin")
     g.feed(default_travel_speed)
     travel_mode()
-    g.write(" ; ready to print")
+    g.write(" ; READY TO PRINT")
+    
+    #HOME THE A AND B NOZZLES
+#    g.write(multiNozzle_homing_code) # Clears all position offsets
+    
 #    g.abs_move(x=0,y=0,**{default_z_axis:0})
     
     ################ Valves ################
     abdomen_length = 41.5
     control_line_start_y = mold_back_leg_row_y -2
-    valve_separation_dist = 7 #distance from the back legs to the valves
+    valve_separation_dist = 02 #distance from the back legs to the valves
     valve_flow_connection = 3
-    valve_control_connection = 3
+    valve_control_connection = 1
     valve_print_height = control_line_height_abs -0.39 #this is the pad_z_separation from the print_valve function
     valve_flow_height = valve_print_height + 0.39 
-    valve_y = mold_back_leg_row_y - valve_separation_dist
+    valve_y = control_line_start_y - valve_flow_connection - valve_separation_dist
     valve_x_distance = 1.5 #distance from the center of the body to the valve is center
     valve_angle = np.pi
     valve_connection_dwell_time = 2 # when connecting to the valve flowstems, dwell for this long to make a good blob junction
-     
+    
+    right_valve_x = mold_center_x+valve_x_distance 
+    left_valve_x = mold_center_x-valve_x_distance
+        
     # pressure chambers    
-    pressure_chamber_separation_distance = 7
-                            
+    pressure_chamber_separation_distance = 2
+    pressure_chamber_front_y = valve_y-valve_flow_connection-pressure_chamber_separation_distance
+                                                        
     #print the left pressure chamber
     g.abs_move(control_line_A_x, y=valve_y-valve_flow_connection-default_total_pressure_chamber_inlet_length-default_pressure_chamber_length-pressure_chamber_separation_distance)
     print_pressure_chamber(print_height_abs=control_line_height_abs)
 
     #print left valve
-    left_valve_x = mold_center_x-valve_x_distance
     g.abs_move(x=left_valve_x, y = valve_y)
-    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, theta=valve_angle, control_stem_corner=True)
-        
+    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, theta=valve_angle, control_stem_corner=False, flow_inlet=False)
+
+    #connect the left pressure chamber to the bottom flow line of the right valve
+    g.abs_move(x=control_line_A_x, y = pressure_chamber_front_y)
+    print_mode(print_height_abs = valve_flow_height)
+    g.abs_move(x=left_valve_x,y=valve_y-valve_flow_connection)
+    travel_mode()        
+                        
     #print control line A (left side)
-#    travel_mode(whipe_distance=0) valve printing ends in travel mode
     g.abs_move(left_valve_x, valve_y+valve_flow_connection) #go over the top flow line of the left valve
     print_mode(print_height_abs = valve_flow_height) #connect to flow line
     g.dwell(valve_connection_dwell_time)
@@ -128,22 +143,32 @@ def print_robot():
     move_z_abs(actuator_print_height)
     print_left_actuator()
     
+    #print the right pressure chamber
+    g.abs_move(control_line_B_x, y=pressure_chamber_front_y-default_total_pressure_chamber_inlet_length-default_pressure_chamber_length)
+    print_pressure_chamber(print_height_abs=control_line_height_abs)
+    
+    #connect the right pressure chamber to the bottom flow line of the right valve
+    g.abs_move(x=control_line_B_x, y = pressure_chamber_front_y)
+    print_mode(print_height_abs = valve_flow_height)
+    g.abs_move(x=right_valve_x,y=valve_y-valve_flow_connection)
+    travel_mode()
+    
     #print right valve
-    right_valve_x = mold_center_x+valve_x_distance
     g.abs_move(x=right_valve_x,y=valve_y)
-    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, x_mirror=True, theta=valve_angle, control_stem_corner=False)
+    print_valve(flow_connection_x = valve_flow_connection, control_connection_y = valve_control_connection, print_height_abs=valve_print_height, x_mirror=True, theta=valve_angle, control_stem_corner=False, flow_inlet=False)
     
     #print control line B (right side)
     g.abs_move(x=right_valve_x, y=valve_y+valve_flow_connection) #move over the top flow connector of the right valve
     print_mode(print_height_abs = valve_flow_height) #connect to flow line
     g.dwell(valve_connection_dwell_time)
-    g.abs_move(x=control_line_B_x, y = control_line_start_y,z=control_line_height_abs)
+    g.abs_move(x=control_line_B_x, y = control_line_start_y, z=control_line_height_abs)
     g.abs_move(y = mold_front_leg_row_y)
     
     #print actuator B1 (top right) directly from end of control line B
     g.abs_move(x=right_actuators_interconnects_x)
     move_z_abs(actuator_print_height)
     print_right_actuator()
+    
     
     #Print the rest of the actuators off of the control lines
     
@@ -202,14 +227,19 @@ def print_robot():
     #go back to home
     g.abs_move(x=0,y=0,**{default_z_axis:default_travel_height_abs})
 
-g.write(multiNozzle_start_code)
-g.write(start_script_string)
-g.write(multiNozzle_start_code_2)
+
+# Headers and Aerotech appeasement
+AerotechMultiNozzle=False
+if (AerotechMultiNozzle):
+    g.write(multiNozzle_start_code)
+    g.write(multiNozzle_homing_code)
+    g.write(multiNozzle_start_code_2)
 
 #main program
 print_robot()     
 
 g.write(end_script_string)  
-g.write(multiNozzle_start_code)                          
+g.write(multiNozzle_end_code)  
+                        
 g.view()
 g.teardown()

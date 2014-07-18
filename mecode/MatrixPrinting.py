@@ -13,7 +13,7 @@ default_matrix_print_speed = 0.25
 default_mold_top_abs = 1 #relative to ecoflex
 default_travel_height_abs = default_mold_top_abs+3
 default_print_speed = 1.5
-default_z_axis = "z"
+default_z_axis = "A"
 
 #stems
 
