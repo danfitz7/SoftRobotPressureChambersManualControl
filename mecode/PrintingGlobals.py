@@ -9,5 +9,6 @@ def init_G(strFile):
         outfile=strFile,
         aerotech_include=False,
     )
+    return g
 
 
