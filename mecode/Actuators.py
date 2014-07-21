@@ -1,7 +1,7 @@
 import numpy as np
 
 from MatrixPrinting import *
-from PrintingGlobals import *
+import PrintingGlobals
 
 def print_actuator(print_height_abs, pressure=85, com_port=9, theta=0, travel_speed = default_travel_speed):
     """Prints a soft actuator with the stem starting in the current position and rotated by theta. Assume nozzle is already at the correct height"""

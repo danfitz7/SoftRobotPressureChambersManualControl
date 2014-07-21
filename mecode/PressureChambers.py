@@ -1,8 +1,8 @@
 import numpy as np
 
 from MatrixPrinting import *
-from PrintingGlobals import *
 from MultiMaterial import *
+import PrintingGlobals
 
 default_pressure_chamber_length = 5
 default_speed = 0.5
@@ -35,7 +35,8 @@ def print_pressure_chamber(print_height_abs, theta=0, travel_speed = default_tra
         Back Flow Inlet
         
     """
-    
+    global g
+        
     #inlets
     stem_print_speed = default_print_speed
     inlet_print_speed = 0.5
@@ -59,11 +60,25 @@ def print_pressure_chamber(print_height_abs, theta=0, travel_speed = default_tra
 
     # switch extruders, print the presure chamber channel
     change_tool(1)
-    print_mode(print_height_abs=print_height_abs, print_speed = speed)
+    
+    #print_mode(print_height_abs=print_height_abs, print_speed = speed)
+    PrintingGlobals.g.feed(default_travel_speed)
+    PrintingGlobals.g.abs_move(**{cur_tool:print_height_abs})
+    turn_pressure_on()
+    PrintingGlobals.g.dwell(default_start_stop_dwell_time)
+    PrintingGlobals.g.feed(speed)
+    
+    
+    # PRINT THE CHAMBER
     PrintingGlobals.g.dwell(connection_dwell_time)
     move_y(length+2*extra_tip_length, theta)
     PrintingGlobals.g.dwell(connection_dwell_time)
-    travel_mode()
+    
+    #travel_mode()
+    turn_pressure_off()
+    PrintingGlobals.g.feed(default_matrix_travel_speed)
+    PrintingGlobals.g.abs_move(**{cur_tool:default_travel_height_abs})
+    PrintingGlobals.g.feed(default_travel_speed)
             
     change_tool(0)
     

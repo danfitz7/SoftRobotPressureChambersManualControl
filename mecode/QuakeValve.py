@@ -1,7 +1,7 @@
 import numpy as np
 
 from MatrixPrinting import *
-from PrintingGlobals import *
+import PrintingGlobals
 
 def print_valve(print_height_abs, theta=0, stem_print_speed = default_print_speed, flow_connection_x = 3, control_connection_y = 3, x_mirror=False, y_mirror=False, flow_inlet = True, control_inlet = True, control_stem_corner = True):
     """Prints a valve with the stem starting in the current position and rotated by theta. Assume nozzle is already at the correct height"""

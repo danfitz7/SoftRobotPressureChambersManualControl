@@ -1,5 +1,7 @@
 from mecode import G
 
+Aerotech = True
+
 g=G()
 def init_G(strFile):
     print "Initializing G..."

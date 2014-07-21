@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 from MatrixPrinting import *
-from PrintingGlobals import *
+import PrintingGlobals
 
-strTools = ["A","B","C","D"]
+strTools = (["A","B","C","D"] if PrintingGlobals.Aerotech else ["z","z","z","z"])
 cur_tool_index = 0
+cur_tool = strTools[cur_tool_index]
+
 def setStrTool(index, strNewName):
     strTools[index]=strNewName
 
 def change_tool(to_tool_index):
     global cur_tool_index
+    global cur_tool
     global g
-    from_tool  = strTools[cur_tool_index]
+    from_tool  = cur_tool #strTools[cur_tool_index]
     cur_tool = strTools[to_tool_index]
     PrintingGlobals.g.write("; Change Tools from " + from_tool + " to " + cur_tool + ".")
     PrintingGlobals.g.write("G1 X(($" + cur_tool + "x-$" + from_tool + "x-($" + cur_tool + "x_dif-$" + from_tool + "x_dif))) F" + str(default_travel_speed))
@@ -19,6 +22,12 @@ def change_tool(to_tool_index):
 
 multiNozzle_start_code = """
 ;########### Variables For Functions ########################
+DVAR $hFile        
+DVAR $cCheck
+DVAR $press
+DVAR $length
+DVAR $lame  
+
 
 DVAR $comport
 DVAR $found, $floor $delta $deltafast $Ax $Ay $Bx $By $Cx $Cy $Dx $Dy $Px $Py $posA $posB $posC $posD $posZ $fastfeed $midfeed $slowfeed $Astart $Bstart $Cstart $Dstart $Pstart $comma1 $comma2 $comma1plus $comma2plus

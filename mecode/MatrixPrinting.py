@@ -13,7 +13,7 @@ default_matrix_print_speed = 0.25
 default_mold_top_abs = 1 #relative to ecoflex
 default_travel_height_abs = default_mold_top_abs+3
 default_print_speed = 1.5
-default_z_axis = "A"
+default_z_axis = ("A" if PrintingGlobals.Aerotech else "z")
 
 #stems
 
@@ -35,6 +35,7 @@ def turn_pressure_on(com_port = default_com_port, start_stop_dwell_time = defaul
 
 # Printing Mode Macros
 def move_z_abs(height, z_axis = default_z_axis, vertical_travel_speed = default_matrix_travel_speed):
+    global ng
     cur_pos = PrintingGlobals.g.get_current_position()
     prev_speeds=default_travel_speed
     if (cur_pos):
@@ -59,6 +60,7 @@ def move_z_abs(height, z_axis = default_z_axis, vertical_travel_speed = default_
 
 def travel_mode(travel_speed = default_travel_speed, travel_height_abs = default_travel_height_abs, whipe_distance=0, whipe_angle=0):
     """"Stop Extrusion, whipe, move to travel height, unwhipe"""
+    global g
     turn_pressure_off()
     PrintingGlobals.g.dwell(default_start_stop_dwell_time)
     #PrintingGlobals.g.move(x=np.cos*
@@ -70,6 +72,7 @@ def travel_mode(travel_speed = default_travel_speed, travel_height_abs = default
     
 def print_mode(print_height_abs, travel_speed = default_travel_speed, print_speed = default_print_speed, whipe_distance=0, whipe_angle=0):
     """Move to print height, start Extrusion"""
+    global g
     PrintingGlobals.g.feed(travel_speed)
 #    move_x(whipe_distance,whipe_angle)
     
@@ -90,14 +93,17 @@ def print_mode(print_height_abs, travel_speed = default_travel_speed, print_spee
     PrintingGlobals.g.feed(print_speed)
   
 def move_x(distance, theta=0):
+    global g
     if (distance!=0):
         PrintingGlobals.g.move(x=np.cos(theta)*distance, y=np.sin(theta)*distance)        
      
 def move_y(distance, theta=0):
+    global g
     if (distance!=0):
         PrintingGlobals.g.move(x=-np.sin(theta)*distance, y=np.cos(theta)*distance)                     
  
 def move_xy(x_distance, y_distance, theta=0):
+    global g
     C=np.cos(theta)
     S=np.sin(theta)
     if (x_distance!=0 and y_distance!=0):

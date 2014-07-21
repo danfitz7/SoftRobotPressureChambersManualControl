@@ -1,6 +1,11 @@
-G91
 
 ;########### Variables For Functions ########################
+DVAR $hFile        
+DVAR $cCheck
+DVAR $press
+DVAR $length
+DVAR $lame  
+
 
 DVAR $comport
 DVAR $found, $floor $delta $deltafast $Ax $Ay $Bx $By $Cx $Cy $Dx $Dy $Px $Py $posA $posB $posC $posD $posZ $fastfeed $midfeed $slowfeed $Astart $Bstart $Cstart $Dstart $Pstart $comma1 $comma2 $comma1plus $comma2plus
@@ -25,43 +30,7 @@ DVAR $heightc
 DVAR $heightd
 
 
-
-$DO0.0=0
-$DO1.0=0
-$DO2.0=0
-$DO3.0=0
-Call togglePress P$COM  ; Turns on/off pressure box for A
-
-; Below, we call several required GCode commands; these commands begin with a G:
-G71            ; Standard GCode command for metric units
-G76            ; Standard GCode command for time base seconds
-G68            
-G65 F3000        ; Sets an acceleration speed in mm/s^2
-G66 F3000        ; Sets a deceleration speed in mm/s^2
-
-; The “ENABLE” command allows us to enable axes on the printer; this is required for printing
-ENABLE X Y A B C D U     ; enables all the axis 
-
-
-Incremental                ; “Incremental” tells the printer to referring to relative coordinates
-
-
-;############### User Code################################
-
-G90
-POSOFFSET CLEAR A ; clear all position offsets and work coordinates.
-F20
-G1 A-54.360000
-F20
-
-G92 X0 Y0 A4 ; set the current position as the absolute work coordinate zero origin
-F20
-G4 P0.2
-F0.5
-G1 A4.000000
-F20
-F20
- ; READY TO PRINT
+$zo_ref  = -58
 
 ;#############################################################################
 ;################ Setup ########################
@@ -127,6 +96,40 @@ $heightb = .390 ; layer2
 $heightc = .525 ; layer3
 $heightd = .710 ; layer4 
 
+
+$DO0.0=0
+$DO1.0=0
+$DO2.0=0
+$DO3.0=0
+Call togglePress P$COM  ; Turns on/off pressure box for A
+
+; Below, we call several required GCode commands; these commands begin with a G:
+G71            ; Standard GCode command for metric units
+G76            ; Standard GCode command for time base seconds
+G68            
+G65 F3000        ; Sets an acceleration speed in mm/s^2
+G66 F3000        ; Sets a deceleration speed in mm/s^2
+
+; The “ENABLE” command allows us to enable axes on the printer; this is required for printing
+ENABLE X Y A B C D U     ; enables all the axis 
+
+
+Incremental                ; “Incremental” tells the printer to referring to relative coordinates
+
+
+;############### User Code################################
+
+G90
+F20
+G1 X367.670000 Y180.034000
+F0.5
+G1 A4.000000
+F20
+POSOFFSET CLEAR A ; clear all position offsets and work coordinates.
+
+G92 X0 Y0 A4 ; set the current position as the absolute work coordinate zero origin
+F20
+ ; READY TO PRINT
 G1 X49.266667 Y-56.000000
 G91
 G1 X-0.000000 Y4.500000
@@ -134,11 +137,9 @@ G1 X-0.000000 Y4.500000
 G1 X(($Bx-$Ax-($Bx_dif-$Ax_dif))) F20
 G1 Y(($Ay-$By+($Ay_dif-$By_dif)))
 F20
-F0.5
 G90
 G1 A-3.810000
 G91
-F20
 G4 P0.2
 Call togglePress P9
 G4 P0.2
@@ -148,12 +149,10 @@ G1 X-0.000000 Y6.000000
 G4 P1
 Call togglePress P9
 G4 P0.2
-G4 P0.2
 F0.5
 G90
 G1 A4.000000
 G91
-F0.5
 F20
 ; Change Tools from B to A.
 G1 X(($Ax-$Bx-($Ax_dif-$Bx_dif))) F20
@@ -422,8 +421,9 @@ G1 X-0.000000 Y4.500000
 G1 X(($Bx-$Ax-($Bx_dif-$Ax_dif))) F20
 G1 Y(($Ay-$By+($Ay_dif-$By_dif)))
 F20
-F0.5
-F20
+G90
+G1 A-3.810000
+G91
 G4 P0.2
 Call togglePress P9
 G4 P0.2
@@ -433,12 +433,10 @@ G1 X-0.000000 Y6.000000
 G4 P1
 Call togglePress P9
 G4 P0.2
-G4 P0.2
 F0.5
 G90
 G1 A4.000000
 G91
-F0.5
 F20
 ; Change Tools from B to A.
 G1 X(($Ax-$Bx-($Ax_dif-$Bx_dif))) F20
@@ -634,7 +632,7 @@ F1.5
 F20
 F0.5
 G90
-G1 A0.187000
+G1 A-0.173000
 G91
 F0.5
 G4 P0.2
@@ -703,7 +701,7 @@ F1.5
 G1 X61.200000
 F20
 F0.5
-G1 A0.187000
+G1 A-0.173000
 F1.5
 G4 P0.2
 F1.5
@@ -903,7 +901,7 @@ F1.5
 G1 X61.200000
 F20
 F0.5
-G1 A0.187000
+G1 A-0.173000
 F1.5
 G4 P0.2
 F1.5
@@ -1042,7 +1040,7 @@ G1 X61.200000
 G1 Y-34.000000
 F20
 F0.5
-G1 A0.187000
+G1 A-0.173000
 F1.5
 G4 P0.2
 F1.5
@@ -1097,115 +1095,6 @@ F3.375
 F20
 G90
 G1 X0.000000 Y0.000000 A4.000000
-
-VELOCITY OFF
-
-M2
-
-;----------------------------------------------------------
-; END OF CODE - Function definitions below
-;----------------------------------------------------------
-DFS setPress        
-         
-	$strtask1 = DBLTOSTR( $P, 0 )            
-	$strtask1 = "COM" + $strtask1
-	$hFile = FILEOPEN $strtask1, 2
-	COMMINIT $hFile, "baud=115200 parity=N data=8 stop=1"
-	COMMSETTIMEOUT $hFile, -1, -1, 1000
-                             
-	$press = $Q * 10.0                             
-	$strtask2 = DBLTOSTR( $press , 0 )  
-      
-      
-	$length = STRLEN( $strtask2 )      
-	WHILE $length < 4.0
-		$strtask2 = "0" + $strtask2    
-		$length = STRLEN( $strtask2 ) 
-	ENDWHILE
-
-	$strtask2 = "08PS  " + $strtask2
-                                    
-	$cCheck = 0.00     
-	$lame = STRTOASCII ($strtask2, 0)
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 1) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 2) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 3) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 4)
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 5) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 6) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 7) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 8) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 9)  
-	$cCheck = $cCheck - $lame
-                        
-	WHILE( $cCheck) < 0
-		$cCheck = $cCheck + 256
-	ENDWHILE                        
-
-	$strtask3 = makestring "{#H}" $cCheck   
-	$strtask3 = STRUPR( $strtask3 )
-	$strtask2 = "" + $strtask2 + $strtask3 + ""
-            
-	FILEWRITE $hFile ""
-	FILEWRITE $hFile $strtask2
-	FILEWRITE $hFile ""
-
-	FILECLOSE $hFile
-
-ENDDFS
-
-DFS togglePress        
-         
-	$strtask1 = DBLTOSTR( $P, 0 )            
-	$strtask1 = "COM" + $strtask1
-	$hFile = FILEOPEN $strtask1, 2
-	COMMINIT $hFile, "baud=115200 parity=N data=8 stop=1"
-	COMMSETTIMEOUT $hFile, -1, -1, 1000
-
-	$strtask2 = "04DI  "
-                                    
-	$cCheck = 0.00     
-	$lame = STRTOASCII ($strtask2, 0)
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 1) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 2) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 3) 
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 4)
-	$cCheck = $cCheck - $lame
-	$lame = STRTOASCII( $strtask2, 5) 
-	$cCheck = $cCheck - $lame
-                        
-	WHILE( $cCheck) < 0
-		$cCheck = $cCheck + 256
-	ENDWHILE                        
-
-	$strtask3 = makestring "{#H}" $cCheck   
-	$strtask3 = STRUPR( $strtask3 )
-	$strtask2 = "" + $strtask2 + $strtask3 + ""
-                  
-	FILEWRITE $hFile ""
-	FILEWRITE $hFile $strtask2
-	FILEWRITE $hFile ""
-
-	FILECLOSE $hFile
-
-ENDDFS  
-;----------------------------------------------------------
-;----------------------------------------------------------
-;----------------------------------------------------------
-
 
 ;################ Teardown ########################################
 M2

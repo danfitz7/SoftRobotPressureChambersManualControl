@@ -27,15 +27,15 @@ from PressureChambers import *
 g=init_G(r"H:\User Files\Fitzgerald\SoftRobots\SoftRobotPressureChambersManualControl\gcode\SoftRobotPressureChambersManualControl.pgm")
 
 
-
 def print_robot():
-    
+    global g
+
     # PRINT_SPECIFIC PARAMETERS
-    MACHINE_ZERO = -58.36 #zero on the top of the left ecoflex layer
+    MACHINE_ZERO = -58#-58.36 #zero on the top of the left ecoflex layer
     MACHINE_ZERO_RIGHT = -58.273 #the top of the left ecoflex layer
     right_side_offset = MACHINE_ZERO_RIGHT-MACHINE_ZERO # added to the print height of the right actuators
-    MOLD_MACHINE_X = 394.742
-    MOLD_MACHINE_Y = 128.601
+    MOLD_MACHINE_X = 367.67
+    MOLD_MACHINE_Y = 180.034
                                    
     # mold parameters
     mold_z_zero_abs = 0     # absolute zero of the top of the mold
@@ -81,22 +81,25 @@ def print_robot():
  
     ################ START PRINTING ################
     
+    # Headers and Aerotech appeasement
+    g.write(multiNozzle_start_code)
+    g.write("$zo_ref  = "+str(MACHINE_ZERO))
+    g.write(multiNozzle_homing_code)
+    g.write(multiNozzle_start_code_2)
+    
     # set the current X and Y as the origin of the current work coordinates
     g.absolute()
-    g.abs_move(x=MOLD_MACHINE_X, y=MOLD_MACHINE_Y)  
-    g.write("POSOFFSET CLEAR A ; clear all position offsets and work coordinates.") 
+    #We should start in machine coordinates because the homing routine clears all position offsets
     g.feed(default_travel_speed)
-    move_z_abs(MACHINE_ZERO+default_travel_height_abs)
+    g.abs_move(x=MOLD_MACHINE_X, y=MOLD_MACHINE_Y)  
+    move_z_abs(default_travel_height_abs) #MACHINE_ZERO+
+    g.write("POSOFFSET CLEAR A ; clear all position offsets and work coordinates.") 
+#    move_z_abs(MACHINE_ZERO+default_travel_height_abs)
     g.write("\nG92 X0 Y0 "+default_z_axis+str(default_travel_height_abs)+" ; set the current position as the absolute work coordinate zero origin")
     g.feed(default_travel_speed)
-    travel_mode()
+    #travel_mode()
     g.write(" ; READY TO PRINT")
-    
-    #HOME THE A AND B NOZZLES
-#    g.write(multiNozzle_homing_code) # Clears all position offsets
-    
-#    g.abs_move(x=0,y=0,**{default_z_axis:0})
-    
+
     ################ Valves ################
     abdomen_length = 41.5
     control_line_start_y = mold_back_leg_row_y -2
@@ -228,17 +231,12 @@ def print_robot():
     g.abs_move(x=0,y=0,**{default_z_axis:default_travel_height_abs})
 
 
-# Headers and Aerotech appeasement
-AerotechMultiNozzle=False
-if (AerotechMultiNozzle):
-    g.write(multiNozzle_start_code)
-    g.write(multiNozzle_homing_code)
-    g.write(multiNozzle_start_code_2)
+
 
 #main program
 print_robot()     
 
-g.write(end_script_string)  
+#g.write(end_script_string)  
 g.write(multiNozzle_end_code)  
                         
 g.view()
