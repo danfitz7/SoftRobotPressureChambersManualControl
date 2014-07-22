@@ -3,19 +3,17 @@ from MatrixPrinting import *
 import PrintingGlobals
 
 strTools = (["A","B","C","D"] if PrintingGlobals.Aerotech else ["z","z","z","z"])
+strComPorts = ("85", "86", "0", "0" if PrintingGlobals.Aerotech else ["85","85","85","85"])
 cur_tool_index = 0
-cur_tool = strTools[cur_tool_index]
-
-def setStrTool(index, strNewName):
-    strTools[index]=strNewName
 
 def change_tool(to_tool_index):
+    """Change the current nozzle and default z axis."""
     global cur_tool_index
     global cur_tool
     global g
-    from_tool  = cur_tool #strTools[cur_tool_index]
-    cur_tool = strTools[to_tool_index]
-    PrintingGlobals.g.write("; Change Tools from " + from_tool + " to " + cur_tool + ".")
+    from_tool_index  = cur_tool_index #strTools[cur_tool_index]
+    cur_tool_index = to_tool_index
+    PrintingGlobals.g.write("; Change Tools from " + strTools[from_tool] + " to " + strTools[cur_tool] + ".")
     PrintingGlobals.g.write("G1 X(($" + cur_tool + "x-$" + from_tool + "x-($" + cur_tool + "x_dif-$" + from_tool + "x_dif))) F" + str(default_travel_speed))
     PrintingGlobals.g.write("G1 Y(($" + from_tool + "y-$" + cur_tool + "y+($" + from_tool + "y_dif-$" + cur_tool + "y_dif)))")
     cur_tool_index = to_tool_index

@@ -3,7 +3,7 @@
 Soft Robot mecode
 Version 3
 Daniel Fitzgerald, Harvard lewis Research Group
-07/17/2014
+07/21/2014
 
 This version includes two pressure chambers which power actuator channels A and B through two valves.
 Functions for valves, actuators, and pressure chambers have also been moves to seperate files, as has standard matrix printing functionality and the starting and ending G Code for robomama.
@@ -24,6 +24,7 @@ from Actuators import *
 from PrintingGlobals import *
 from PressureChambers import *
 
+#init_G from PrintingGlobals.py
 g=init_G(r"H:\User Files\Fitzgerald\SoftRobots\SoftRobotPressureChambersManualControl\gcode\SoftRobotPressureChambersManualControl.pgm")
 
 
@@ -31,9 +32,10 @@ def print_robot():
     global g
 
     # PRINT_SPECIFIC PARAMETERS
-    MACHINE_ZERO = -58#-58.36 #zero on the top of the left ecoflex layer
-    MACHINE_ZERO_RIGHT = -58.273 #the top of the left ecoflex layer
+    MACHINE_ZERO = -58 #-58.36 #zero on the top of the left ecoflex layer
+    MACHINE_ZERO_RIGHT = -58#-58.273 #the top of the left ecoflex layer
     right_side_offset = MACHINE_ZERO_RIGHT-MACHINE_ZERO # added to the print height of the right actuators
+    #Absolute Machine Coordinates of the top left corner of the mold
     MOLD_MACHINE_X = 367.67
     MOLD_MACHINE_Y = 180.034
                                    
@@ -41,15 +43,13 @@ def print_robot():
     mold_z_zero_abs = 0     # absolute zero of the top of the mold
     mold_center_x = 53.5    # x coordinate of the center of the robot, relative to mold top left corner
     mold_front_leg_row_y = - 13  # y cooredinate of the center of the front/foreward actuators, relative to mold top left corner
-    mold_back_leg_row_y = -34
-    mold_actuator_z_bottom_abs = mold_z_zero_abs - 1.5 # relative to top of mold
-#    mold_actuator_z_top = 0 #mold_z_zero_abs - 1 # relative top top of mold (expected)
-    mold_depth = 7.62
-    mold_body_width = 25.4
-    mold_body_length = 65.2
-    mold_head_y = -4.9
+    mold_back_leg_row_y = -34 # Y coordiante of the centerline of the back legs/actuators
+    mold_depth = 7.62 # total depth of the body of the robot
+    mold_body_width = 25.4 # width of the body of the robot
+    mold_body_length = 65.2 #length of the body of the robot
+    mold_head_y = -4.9 # y coordinate of the tip of the head of the robot
     
-    # travel
+    # travel height above the mold
     travel_height_abs = mold_z_zero_abs + 5
     
     # needle inlet connections in the abdomen
@@ -72,28 +72,31 @@ def print_robot():
     def print_left_actuator():
         print_actuator(theta = 0.5*np.pi, print_height_abs = actuator_print_height)
  
-    ## control lines
-    control_line_height_abs = mold_z_zero_abs - mold_depth/2.0
-    control_line_bridge_height_abs = control_line_height_abs + 2
-    control_line_x_dist_from_center_line = (1.0/6.0)*mold_body_width
+    # control lines
+    control_line_height_abs = mold_z_zero_abs - mold_depth/2.0 # height of control line channels A and B
+    control_line_bridge_height_abs = control_line_height_abs + 2 # height to bridge over the control lines
+    control_line_x_dist_from_center_line = (1.0/6.0)*mold_body_width # distance control lines A and B are from the centerline of the robot (to the left and right respectivly)
     control_line_A_x = mold_center_x - control_line_x_dist_from_center_line
     control_line_B_x = mold_center_x + control_line_x_dist_from_center_line
  
     ################ START PRINTING ################
     
-    # Headers and Aerotech appeasement
+    # Print headers and Aerotech appeasement
     g.write(multiNozzle_start_code)
-    g.write("$zo_ref  = "+str(MACHINE_ZERO))
-    g.write(multiNozzle_homing_code)
+    g.write("$zo_ref  = "+str(MACHINE_ZERO)) # set the $zo_ref as the reference zero for axis homing (why does homing/offsets need a reference?)
+    g.write(multiNozzle_homing_code) # comment this to not home axis
     g.write(multiNozzle_start_code_2)
     
     # set the current X and Y as the origin of the current work coordinates
-    g.absolute()
-    #We should start in machine coordinates because the homing routine clears all position offsets
+    g.absolute()     
+    
+    # go to our absolute work zero (mold top left corner)
+    g.write("POSOFFSET CLEAR A ; clear all position offsets and work coordinates.") #We should start in machine coordinates because the homing routine clears all position offsets, but clear them again anyway just incase
     g.feed(default_travel_speed)
     g.abs_move(x=MOLD_MACHINE_X, y=MOLD_MACHINE_Y)  
     move_z_abs(default_travel_height_abs) #MACHINE_ZERO+
-    g.write("POSOFFSET CLEAR A ; clear all position offsets and work coordinates.") 
+    
+    # set this current mold zero as the work zero (set clearany current position offsets
 #    move_z_abs(MACHINE_ZERO+default_travel_height_abs)
     g.write("\nG92 X0 Y0 "+default_z_axis+str(default_travel_height_abs)+" ; set the current position as the absolute work coordinate zero origin")
     g.feed(default_travel_speed)
@@ -231,13 +234,14 @@ def print_robot():
     g.abs_move(x=0,y=0,**{default_z_axis:default_travel_height_abs})
 
 
-
+    #Cleanup/Aerotech functions at the end
+    #g.write(end_script_string)  
+    g.write(multiNozzle_end_code)
 
 #main program
 print_robot()     
 
-#g.write(end_script_string)  
-g.write(multiNozzle_end_code)  
+  
                         
 g.view()
 g.teardown()
